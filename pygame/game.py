@@ -1,5 +1,4 @@
 import pygame
-import random
 import math
 
 from setting import WIDTH, HEIGHT, FPS
@@ -7,35 +6,36 @@ from player import Player
 from weapon import Weapon
 from bullet import Bullet
 from effects import Explosion, MuzzleFlash, HitSpark
-from ui import draw_hp
+from map import generate_walls
 
 
 pygame.init()
-pygame.mixer.music.load("bgm.mp3")
-pygame.mixer.music.set_volume(0.4)
-pygame.mixer.music.play(-1)
 
-font = pygame.font.SysFont(None,36)
+font = pygame.font.SysFont(None,20)
 big_font = pygame.font.SysFont(None,80)
 
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
-pygame.display.set_caption("2 Player Shooter")
+pygame.display.set_caption("Tank Battle")
 
 clock = pygame.time.Clock()
 
 
-weapons = [
-    Weapon("Pistol",12,400),
-    Weapon("Rifle",8,150),
-    Weapon("Sniper",40,900)
+weapon = Weapon("Pistol",12,400)
+
+
+# 两个玩家出生点（对角）
+spawn_points = [
+(80,80),
+(WIDTH-80,HEIGHT-80)
 ]
 
 
-player1_weapon = random.choice(weapons)
-player2_weapon = random.choice(weapons)
+players = [
 
-player1 = Player(200,300,(0,255,0),player1_weapon,"Player 1")
-player2 = Player(600,300,(255,0,0),player2_weapon,"Player 2")
+Player(spawn_points[0][0],spawn_points[0][1],(0,255,0),weapon,"P1"),
+Player(spawn_points[1][0],spawn_points[1][1],(255,0,0),weapon,"P2")
+
+]
 
 
 bullets = []
@@ -43,12 +43,32 @@ explosions = []
 flashes = []
 sparks = []
 
-shake = 0
+walls = generate_walls()
 
 running = True
 winner = None
 game_over = False
 death_timer = 0
+
+
+# 玩家移动 + 墙体碰撞
+def move_with_collision(player,dx,dy):
+
+    old_x = player.x
+    old_y = player.y
+
+    player.move(dx,dy,WIDTH,HEIGHT)
+
+    player_rect = pygame.Rect(player.x-15,player.y-15,30,30)
+
+    for wall in walls:
+
+        if player_rect.colliderect(wall):
+
+            player.x = old_x
+            player.y = old_y
+            break
+
 
 
 while running:
@@ -62,13 +82,18 @@ while running:
 
     keys = pygame.key.get_pressed()
 
+
+    # Player 1
     dx1 = dy1 = 0
-    dx2 = dy2 = 0
 
     if keys[pygame.K_w]: dy1 = -1
     if keys[pygame.K_s]: dy1 = 1
     if keys[pygame.K_a]: dx1 = -1
     if keys[pygame.K_d]: dx1 = 1
+
+
+    # Player 2
+    dx2 = dy2 = 0
 
     if keys[pygame.K_UP]: dy2 = -1
     if keys[pygame.K_DOWN]: dy2 = 1
@@ -77,15 +102,18 @@ while running:
 
 
     if not game_over:
-        player1.move(dx1,dy1,WIDTH,HEIGHT)
-        player2.move(dx2,dy2,WIDTH,HEIGHT)
+
+        move_with_collision(players[0],dx1,dy1)
+        move_with_collision(players[1],dx2,dy2)
 
 
+    # 射击
     if not game_over and keys[pygame.K_f]:
-        player1.shoot(bullets,flashes)
+        players[0].shoot(bullets,flashes)
 
     if not game_over and keys[pygame.K_l]:
-        player2.shoot(bullets,flashes)
+        players[1].shoot(bullets,flashes)
+
 
 
     for bullet in bullets[:]:
@@ -97,71 +125,71 @@ while running:
             continue
 
 
-        dist1 = math.sqrt((bullet.x-player1.x)**2 + (bullet.y-player1.y)**2)
-        dist2 = math.sqrt((bullet.x-player2.x)**2 + (bullet.y-player2.y)**2)
+        # 子弹撞墙
+        for wall in walls:
+
+            if wall.collidepoint(bullet.x,bullet.y):
+
+                sparks.append(HitSpark(bullet.x,bullet.y))
+                bullets.remove(bullet)
+                break
 
 
-        if dist1 < 15 and bullet.owner != player1:
+        # 子弹击中玩家
+        for player in players:
 
-            player1.hp -= bullet.damage
-            sparks.append(HitSpark(bullet.x,bullet.y))
-            shake = 10
-            bullets.remove(bullet)
+            if bullet.owner == player:
+                continue
 
-        elif dist2 < 15 and bullet.owner != player2:
+            dist = math.sqrt((bullet.x-player.x)**2 + (bullet.y-player.y)**2)
 
-            player2.hp -= bullet.damage
-            sparks.append(HitSpark(bullet.x,bullet.y))
-            shake = 10
-            bullets.remove(bullet)
+            if dist < 15:
+
+                player.hp -= bullet.damage
+                sparks.append(HitSpark(bullet.x,bullet.y))
+
+                if player.hp <= 0:
+
+                    player.alive = False
+                    explosions.append(
+                        Explosion(int(player.x),int(player.y))
+                    )
+
+                bullets.remove(bullet)
+                break
 
 
-    if player1.hp <= 0 and not game_over:
 
-        player1.alive = False
-        explosions.append(Explosion(int(player1.x),int(player1.y)))
-        shake = 20
-        winner = "Player 2 Wins!"
+    alive_players = [p for p in players if p.hp > 0]
+
+    if len(alive_players) == 1 and not game_over:
+
+        winner = alive_players[0].name
         game_over = True
         death_timer = pygame.time.get_ticks()
 
 
-    if player2.hp <= 0 and not game_over:
 
-        player2.alive = False
-        explosions.append(Explosion(int(player2.x),int(player2.y)))
-        shake = 20
-        winner = "Player 1 Wins!"
-        game_over = True
-        death_timer = pygame.time.get_ticks()
+    screen.fill((0,0,0))
 
 
-    offset_x = random.randint(-shake,shake)
-    offset_y = random.randint(-shake,shake)
+    # 绘制墙
+    for wall in walls:
+        pygame.draw.rect(screen,(180,80,40),wall)
 
 
-    for x in range(0,WIDTH,40):
-        for y in range(0,HEIGHT,40):
-
-            color = (20,20,40)
-
-            if (x+y)//40 % 2 == 0:
-                color = (30,30,60)
-
-            pygame.draw.rect(screen,color,(x+offset_x,y+offset_y,40,40))
+    # 绘制玩家
+    for player in players:
+        if player.alive:
+            player.draw(screen,font)
 
 
-    player1.draw(screen,font)
-    player2.draw(screen,font)
-
-    draw_hp(player1,20,20,screen,font)
-    draw_hp(player2,WIDTH-220,20,screen,font)
-
-
+    # 子弹
     for bullet in bullets:
         bullet.draw(screen)
 
 
+    # 特效
     for e in explosions[:]:
 
         e.update()
@@ -189,9 +217,8 @@ while running:
             sparks.remove(s)
 
 
-    pygame.display.flip()
 
-    shake = max(0,shake-1)
+    pygame.display.flip()
 
 
     if game_over:
@@ -204,7 +231,7 @@ if winner:
 
     screen.fill((10,10,20))
 
-    text = big_font.render(winner,True,(255,220,0))
+    text = big_font.render(f"{winner} Wins!",True,(255,220,0))
     rect = text.get_rect(center=(WIDTH//2,HEIGHT//2))
 
     screen.blit(text,rect)

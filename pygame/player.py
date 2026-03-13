@@ -50,7 +50,24 @@ class Player:
         if not self.alive:
             return
 
-        pygame.draw.circle(screen,self.color,(int(self.x),int(self.y)),15)
+        x = int(self.x)
+        y = int(self.y)
 
-        name_text=font.render(self.name,True,(255,255,255))
-        screen.blit(name_text,(self.x-20,self.y-35))
+        pygame.draw.circle(screen,self.color,(x,y),15)
+
+        # 玩家名字
+        name_text = font.render(self.name,True,(255,255,255))
+        name_rect = name_text.get_rect(center=(x,y-35))
+        screen.blit(name_text,name_rect)
+
+        # 血条
+        hp = max(0,self.hp)
+
+        bar_width = 40
+        bar_height = 6
+
+        bar_x = x - bar_width//2
+        bar_y = y - 50
+
+        pygame.draw.rect(screen,(100,0,0),(bar_x,bar_y,bar_width,bar_height))
+        pygame.draw.rect(screen,(0,255,0),(bar_x,bar_y,bar_width*(hp/100),bar_height))
