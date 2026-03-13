@@ -1,57 +1,64 @@
-import sys
 import zmq
 import time
 import pygame
+import random
 
-from Action import Action
-from Game_State import Game_State
+from player import Player
+from weapon import Weapon
+from bullet import Bullet
 
-def main(port, host):
-    context = zmq.Context()
-    socket = context.socket(zmq.REP)
-    socket.bind(f"tcp://{host}:{port}")
-    print(f"Waiting for clients on port '{port}' on host '{host}'.")
+WIDTH = 800
+HEIGHT = 600
 
-    poller = zmq.Poller()
-    poller.register(socket, zmq.POLLIN)
+context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.bind("tcp://*:2345")
 
-    game_fps = 60
-    frame_duration_ms = 1000 // game_fps
-    prev_time = time.time()
-    actions = {}
-    game_state = Game_State(pygame.Vector2(800, 600))
+print("Server started")
 
-    while True:
-        # Calculate timeout until next frame update
-        elapsed_ms = (time.time() - prev_time) * 1000
-        timeout_ms = max(0, frame_duration_ms - elapsed_ms)
+players = {}
+bullets = []
 
-        # Wait efficiently for incoming messages or timeout
-        events = poller.poll(timeout=timeout_ms)
+weapon = Weapon("Pistol",12,400)
 
-        for sock, _ in events:
-            action = sock.recv_pyobj()
-            actions[action.get_name()] = action
-            sock.send_pyobj(game_state)
+while True:
 
-        # Update game state when frame time has elapsed
-        if time.time() - prev_time >= 1 / game_fps:
-            prev_time = time.time()
-            update_game_state(game_state, actions)
+    data = socket.recv_pyobj()
 
-def update_game_state(game_state, actions):
-    for name, action in actions.items():
-        if name != '_': # ignore user '_'
-            game_state.update_player(action)
-    game_state.update_bullets()
-    game_state.check_bullet_hits()
-    game_state.spawn_units()
-            
-if __name__ == "__main__":
-    port = 2345
-    host = "127.0.0.1"
-    if len(sys.argv)>1:
-        port = int(sys.argv[1])
-    if len(sys.argv)>2:
-        host = sys.argv[2]
-    main(port, host)
+    name = data["name"]
+    dx = data["dx"]
+    dy = data["dy"]
+    shoot = data["shoot"]
+
+    # speler maken als die nog niet bestaat
+    if name not in players:
+
+        x = random.randint(100,700)
+        y = random.randint(100,500)
+
+        color = (
+            random.randint(100,255),
+            random.randint(100,255),
+            random.randint(100,255)
+        )
+
+        players[name] = Player(x,y,color,weapon,name)
+
+    player = players[name]
+
+    player.move(dx,dy,WIDTH,HEIGHT)
+
+    if shoot:
+        player.shoot(bullets,[])
+
+    # update bullets
+    for bullet in bullets:
+        bullet.update()
+
+    # game state terugsturen
+    state = {
+        "players": players,
+        "bullets": bullets
+    }
+
+    socket.send_pyobj(state)

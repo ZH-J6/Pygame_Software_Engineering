@@ -2,82 +2,78 @@ import sys
 import zmq
 import pygame
 
-from Action import Action
-from Game_State import Game_State
+WIDTH = 800
+HEIGHT = 600
 
-def main(name, port, host):
-    # connect to server
-    context = zmq.Context()
-    socket = context.socket(zmq.REQ)
-    socket.connect(f"tcp://{host}:{port}")
-    print(f"Connecting to port '{port}' of host '{host}'.")
+name = sys.argv[1]
 
-    # start pygame
-    pygame.init()
-    display = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
-    pygame.display.set_caption('mygame')
-    surface = pygame.display.get_surface()
-    clock = pygame.time.Clock()
-    background_color = (0,0,0)
-    name_textures = Name_Textures()
-    game_state = None
-    
-    running = True
-    while running:
-        display.fill(background_color)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        
-        socket.send_pyobj(get_action(name, pygame.key.get_pressed())) # send action
-        if game_state:
-            game_state.draw(name,surface,name_textures) # draw while waiting for answer
-        game_state = socket.recv_pyobj() # receive game_state
-        #print("game_state:",game_state)        
-        
-        pygame.display.flip()
-        clock.tick(60) # run at 60 frames per second
+context = zmq.Context()
+socket = context.socket(zmq.REQ)
+socket.connect("tcp://localhost:2345")
 
-def get_action(name,keys):
-    dx = dy = 0
-    shoot = None
-    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-        dx = -1
-    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-        dx = 1
-    if keys[pygame.K_UP] or keys[pygame.K_w]:
-        dy = -1
-    if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-        dy = 1  
-    if keys[pygame.K_f] or keys[pygame.K_SPACE]:
-        if dx != 0 or dy != 0:
-            # target x/y ligt een stukje in die richting
-            shoot_distance = 50  # hoe ver het schot gaat als target
-            target_x = dx * shoot_distance
-            target_y = dy * shoot_distance
-            shoot = (target_x, target_y)
-    return Action(name, dx, dy, shoot)
+pygame.init()
 
-class Name_Textures: # class to generate and store textures of user names
+screen = pygame.display.set_mode((WIDTH,HEIGHT))
+clock = pygame.time.Clock()
 
-    def __init__(self):
-        self.name_textures={}
+running = True
+game_state = None
 
-    def get_texture(self, name):
-        if not name in self.name_textures:
-            font = pygame.font.SysFont('Comic Sans MS', 20)
-            name_texture = font.render(name, False, (255,255,255))
-            self.name_textures[name] = name_texture
-        return self.name_textures[name]
-        
-if __name__ == "__main__":
-    name = "_"
-    port = 2345
-    host = "127.0.0.1"
-    if len(sys.argv)>1:
-        name = sys.argv[1]
-    if len(sys.argv)>2:
-        port = int(sys.argv[2])
-    if len(sys.argv)>3:
-        host = sys.argv[3]
-    main(name, port, host)
+while running:
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+
+    dx = 0
+    dy = 0
+    shoot = False
+
+    if keys[pygame.K_w]: dy = -1
+    if keys[pygame.K_s]: dy = 1
+    if keys[pygame.K_a]: dx = -1
+    if keys[pygame.K_d]: dx = 1
+
+    if keys[pygame.K_SPACE]:
+        shoot = True
+
+    action = {
+        "name": name,
+        "dx": dx,
+        "dy": dy,
+        "shoot": shoot
+    }
+
+    socket.send_pyobj(action)
+
+    game_state = socket.recv_pyobj()
+
+    screen.fill((20,20,40))
+
+    # spelers tekenen
+    for player in game_state["players"].values():
+
+        pygame.draw.circle(
+            screen,
+            player.color,
+            (int(player.x),int(player.y)),
+            15
+        )
+
+    # bullets tekenen
+    for bullet in game_state["bullets"]:
+
+        pygame.draw.circle(
+            screen,
+            (255,220,50),
+            (int(bullet.x),int(bullet.y)),
+            5
+        )
+
+    pygame.display.flip()
+
+    clock.tick(60)
+
+pygame.quit()
