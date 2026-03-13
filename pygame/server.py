@@ -56,7 +56,7 @@ while True:
 
     # Schieten
     if shoot:
-        player.shoot(bullets, [])
+        player.shoot(bullets, [], player.x, player.y)
 
     # Update bullets
     for bullet in bullets[:]:
