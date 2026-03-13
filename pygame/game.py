@@ -10,6 +10,9 @@ from map import generate_walls
 
 
 pygame.init()
+pygame.mixer.music.load("bgm.mp3")
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(-1)
 
 font = pygame.font.SysFont(None,20)
 big_font = pygame.font.SysFont(None,80)
@@ -19,16 +22,13 @@ pygame.display.set_caption("Tank Battle")
 
 clock = pygame.time.Clock()
 
+weapon = Weapon("Missile",12,400)
 
-weapon = Weapon("Pistol",12,400)
 
-
-# 两个玩家出生点（对角）
 spawn_points = [
 (80,80),
 (WIDTH-80,HEIGHT-80)
 ]
-
 
 players = [
 
@@ -51,7 +51,6 @@ game_over = False
 death_timer = 0
 
 
-# 玩家移动 + 墙体碰撞
 def move_with_collision(player,dx,dy):
 
     old_x = player.x
@@ -59,16 +58,15 @@ def move_with_collision(player,dx,dy):
 
     player.move(dx,dy,WIDTH,HEIGHT)
 
-    player_rect = pygame.Rect(player.x-15,player.y-15,30,30)
+    rect = pygame.Rect(player.x-20,player.y-20,40,40)
 
     for wall in walls:
 
-        if player_rect.colliderect(wall):
+        if rect.colliderect(wall):
 
             player.x = old_x
             player.y = old_y
             break
-
 
 
 while running:
@@ -83,17 +81,15 @@ while running:
     keys = pygame.key.get_pressed()
 
 
-    # Player 1
     dx1 = dy1 = 0
+    dx2 = dy2 = 0
+
 
     if keys[pygame.K_w]: dy1 = -1
     if keys[pygame.K_s]: dy1 = 1
     if keys[pygame.K_a]: dx1 = -1
     if keys[pygame.K_d]: dx1 = 1
 
-
-    # Player 2
-    dx2 = dy2 = 0
 
     if keys[pygame.K_UP]: dy2 = -1
     if keys[pygame.K_DOWN]: dy2 = 1
@@ -107,12 +103,20 @@ while running:
         move_with_collision(players[1],dx2,dy2)
 
 
-    # 射击
     if not game_over and keys[pygame.K_f]:
-        players[0].shoot(bullets,flashes)
+
+        spawn_x = players[0].x + players[0].dir_x * 25
+        spawn_y = players[0].y + players[0].dir_y * 25
+
+        players[0].shoot(bullets,flashes,spawn_x,spawn_y)
+
 
     if not game_over and keys[pygame.K_l]:
-        players[1].shoot(bullets,flashes)
+
+        spawn_x = players[1].x + players[1].dir_x * 25
+        spawn_y = players[1].y + players[1].dir_y * 25
+
+        players[1].shoot(bullets,flashes,spawn_x,spawn_y)
 
 
 
@@ -125,17 +129,21 @@ while running:
             continue
 
 
-        # 子弹撞墙
+        hit_wall = False
+
         for wall in walls:
 
             if wall.collidepoint(bullet.x,bullet.y):
 
                 sparks.append(HitSpark(bullet.x,bullet.y))
                 bullets.remove(bullet)
+                hit_wall = True
                 break
 
+        if hit_wall:
+            continue
 
-        # 子弹击中玩家
+
         for player in players:
 
             if bullet.owner == player:
@@ -143,14 +151,16 @@ while running:
 
             dist = math.sqrt((bullet.x-player.x)**2 + (bullet.y-player.y)**2)
 
-            if dist < 15:
+            if dist < 20:
 
                 player.hp -= bullet.damage
+
                 sparks.append(HitSpark(bullet.x,bullet.y))
 
                 if player.hp <= 0:
 
                     player.alive = False
+
                     explosions.append(
                         Explosion(int(player.x),int(player.y))
                     )
@@ -160,7 +170,7 @@ while running:
 
 
 
-    alive_players = [p for p in players if p.hp > 0]
+    alive_players = [p for p in players if p.alive]
 
     if len(alive_players) == 1 and not game_over:
 
@@ -173,23 +183,18 @@ while running:
     screen.fill((0,0,0))
 
 
-    # 绘制墙
     for wall in walls:
         pygame.draw.rect(screen,(180,80,40),wall)
 
 
-    # 绘制玩家
     for player in players:
-        if player.alive:
-            player.draw(screen,font)
+        player.draw(screen,font)
 
 
-    # 子弹
     for bullet in bullets:
         bullet.draw(screen)
 
 
-    # 特效
     for e in explosions[:]:
 
         e.update()
