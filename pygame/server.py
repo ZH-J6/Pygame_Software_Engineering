@@ -1,20 +1,16 @@
 import zmq
-import time
-import pygame
 import random
+import pygame
 
 from player import Player
 from weapon import Weapon
-from bullet import Bullet
-
-WIDTH = 800
-HEIGHT = 600
+from setting import WIDTH, HEIGHT
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:2345")
 
-print("Server started")
+print("Server gestart")
 
 players = {}
 bullets = []
@@ -30,7 +26,7 @@ while True:
     dy = data["dy"]
     shoot = data["shoot"]
 
-    # speler maken als die nog niet bestaat
+    # speler maken
     if name not in players:
 
         x = random.randint(100,700)
@@ -51,14 +47,28 @@ while True:
     if shoot:
         player.shoot(bullets,[])
 
-    # update bullets
     for bullet in bullets:
         bullet.update()
 
-    # game state terugsturen
+    # state maken
     state = {
-        "players": players,
-        "bullets": bullets
+        "players": [],
+        "bullets": []
     }
+
+    for p in players.values():
+        state["players"].append({
+            "name": p.name,
+            "x": p.x,
+            "y": p.y,
+            "hp": p.hp,
+            "color": p.color
+        })
+
+    for b in bullets:
+        state["bullets"].append({
+            "x": b.x,
+            "y": b.y
+        })
 
     socket.send_pyobj(state)
