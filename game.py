@@ -31,19 +31,18 @@ weapons = [
 
 
 class Bullet:
-    def __init__(self, x, y, target_x, target_y, damage,owner):
+    def __init__(self, x, y, dir_x, dir_y, damage, owner):
+
         self.x = x
         self.y = y
-        self.speed = 8
         self.damage = damage
         self.owner = owner
+        self.speed = 10
 
-        dx = target_x - x
-        dy = target_y - y
-        dist = math.sqrt(dx*dx + dy*dy)
+        length = math.sqrt(dir_x*dir_x + dir_y*dir_y)
 
-        self.vx = dx/dist * self.speed
-        self.vy = dy/dist * self.speed
+        self.vx = dir_x/length * self.speed
+        self.vy = dir_y/length * self.speed
 
     def update(self):
         self.x += self.vx
@@ -54,7 +53,7 @@ class Bullet:
 
 
 class Player:
-    def __init__(self,x,y,color,weapon):
+    def __init__(self,x,y,color,weapon,name):
         self.x = x
         self.y = y
         self.color = color
@@ -62,25 +61,34 @@ class Player:
         self.hp = 100
         self.speed = 4
         self.last_shot = 0
+        self.dir_x = 1
+        self.dir_y = 0
+        self.name = name
 
     def move(self,dx,dy):
-        self.x += dx*self.speed
-        self.y += dy*self.speed
+        if dx != 0 or dy != 0:
+            self.dir_x = dx
+            self.dir_y = dy
 
-        self.x = max(0,min(WIDTH,self.x))
-        self.y = max(0,min(HEIGHT,self.y))
+            self.x += dx*self.speed
+            self.y += dy*self.speed
+
+            self.x = max(0,min(WIDTH,self.x))
+            self.y = max(0,min(HEIGHT,self.y))
 
     def shoot(self,target_x,target_y,bullets):
         now = pygame.time.get_ticks()
 
         if now - self.last_shot > self.weapon.cooldown:
             bullets.append(
-                Bullet(self.x,self.y,target_x,target_y,self.weapon.damage,self)
+                Bullet(self.x,self.y,self.dir_x,self.dir_y,self.weapon.damage,self)
             )
             self.last_shot = now
 
     def draw(self):
         pygame.draw.circle(screen,self.color,(int(self.x),int(self.y)),15)
+        name_text = font.render(self.name, True, (255,255,255))
+        screen.blit(name_text,(self.x-20,self.y-35))
 
 def draw_hp(player, x, y):
 
@@ -101,8 +109,8 @@ player2_weapon = random.choice(weapons)
 print("Player1 weapon:",player1_weapon.name)
 print("Player2 weapon:",player2_weapon.name)
 
-player1 = Player(200,300,(0,255,0),player1_weapon)
-player2 = Player(600,300,(255,0,0),player2_weapon)
+player1 = Player(200,300,(0,255,0),player1_weapon,"Player 1")
+player2 = Player(600,300,(255,0,0),player2_weapon,"Player 2")
 
 bullets = []
 
