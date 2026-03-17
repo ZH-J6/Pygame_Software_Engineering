@@ -1,11 +1,13 @@
 import zmq
 import random
 import pygame
+import math
+import time
+
 from player import Player
 from weapon import Weapon
 from map import generate_walls
 from setting import WIDTH, HEIGHT
-from bullet import Bullet
 
 pygame.init()
 
@@ -13,21 +15,40 @@ pygame.init()
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:2345")
-print("Server gestart")
+
+print("Server started")
 
 # Game state
-players = {}
+players = {}  # name -> {"obj": Player, "last_seen": time}
 bullets = []
-weapon = Weapon("Pistol",12,400)
+weapon = Weapon("Missile", 12, 400)
 walls = generate_walls()
 
-# Spawnpunten (4 hoeken)
+explosions = []
+sparks = []
+dead_players = []  # players killed this frame
+dead_cooldown = {}  # name -> time of death (prevents instant respawn)
+
+# Spawn points for players
 spawn_points = [
     (80, 80),
-    (WIDTH-80, 80),
-    (80, HEIGHT-80),
-    (WIDTH-80, HEIGHT-80)
+    (WIDTH - 80, 80),
+    (80, HEIGHT - 80),
+    (WIDTH - 80, HEIGHT - 80)
 ]
+
+def move_with_collision(player, dx, dy):
+    """Move player and handle wall collision"""
+    old_x, old_y = player.x, player.y
+    player.move(dx, dy, WIDTH, HEIGHT)
+
+    rect = pygame.Rect(player.x - 20, player.y - 20, 40, 40)
+
+    for wall in walls:
+        if rect.colliderect(wall):
+            player.x = old_x
+            player.y = old_y
+            break
 
 while True:
     data = socket.recv_pyobj()
@@ -36,67 +57,127 @@ while True:
     dy = data["dy"]
     shoot = data["shoot"]
 
-    # Speler aanmaken als nieuw
+    now = time.time()
+
+    # If player recently died, force them to exit (no instant respawn)
+    if name in dead_cooldown:
+        if now - dead_cooldown[name] < 2:  # 2-second block
+            state = {
+                "players": [],
+                "bullets": [],
+                "explosions": [],
+                "sparks": [],
+                "dead_players": [name]
+            }
+            socket.send_pyobj(state)
+            continue
+        else:
+            del dead_cooldown[name]
+
+    # Create new player if not exists
     if name not in players:
-        spawn = spawn_points[len(players) % len(spawn_points)]
+        spawn = random.choice(spawn_points)
         color = (
-            random.randint(100,255),
-            random.randint(100,255),
-            random.randint(100,255)
+            random.randint(100, 255),
+            random.randint(100, 255),
+            random.randint(100, 255)
         )
-        players[name] = Player(spawn[0], spawn[1], color, weapon, name)
+        players[name] = {
+            "obj": Player(spawn[0], spawn[1], color, weapon, name),
+            "last_seen": now
+        }
 
-    player = players[name]
+    player_data = players[name]
+    player = player_data["obj"]
+    player_data["last_seen"] = now  # update heartbeat
 
-    # Beweging
-    player.move(dx, dy, WIDTH, HEIGHT)
+    # Move player
+    move_with_collision(player, dx, dy)
     if dx != 0 or dy != 0:
         player.dir_x = dx
         player.dir_y = dy
 
-    # Schieten
+    # Shooting
     if shoot:
-        player.shoot(bullets, [], player.x, player.y)
+        spawn_x = player.x + player.dir_x * 25
+        spawn_y = player.y + player.dir_y * 25
+        player.shoot(bullets, [], spawn_x, spawn_y)
 
     # Update bullets
     for bullet in bullets[:]:
         bullet.update()
-        # Botsing met muur
+
+        # Out of bounds
+        if bullet.x < 0 or bullet.x > WIDTH or bullet.y < 0 or bullet.y > HEIGHT:
+            bullets.remove(bullet)
+            continue
+
+        # Wall collision
+        hit_wall = False
         for wall in walls:
             if wall.collidepoint(bullet.x, bullet.y):
+                sparks.append((bullet.x, bullet.y))
                 bullets.remove(bullet)
+                hit_wall = True
                 break
-        # Botsing met spelers
-        for p in players.values():
-            if p == bullet.owner or not p.alive:
+        if hit_wall:
+            continue
+
+        # Hit player
+        for pname in list(players.keys()):
+            p = players[pname]["obj"]
+
+            if p == bullet.owner:
                 continue
-            dist = ((bullet.x - p.x)**2 + (bullet.y - p.y)**2)**0.5
-            if dist < 15:
+
+            dist = math.sqrt((bullet.x - p.x) ** 2 + (bullet.y - p.y) ** 2)
+            if dist < 20:
                 p.hp -= bullet.damage
+                sparks.append((bullet.x, bullet.y))
+
                 if p.hp <= 0:
-                    p.alive = False
+                    explosions.append((p.x, p.y))
+                    dead_players.append(pname)
+                    dead_cooldown[pname] = time.time()
+                    del players[pname]
+
                 bullets.remove(bullet)
                 break
-        # Buiten scherm
-        if bullet.x < 0 or bullet.x > WIDTH or bullet.y < 0 or bullet.y > HEIGHT:
-            if bullet in bullets:
-                bullets.remove(bullet)
-    
-    # State maken
-    state = {"players": [], "bullets": []}
-    for p in players.values():
+
+    # Remove disconnected players
+    timeout = 0.3
+    for pname in list(players.keys()):
+        if now - players[pname]["last_seen"] > timeout:
+            print(f"{pname} disconnected")
+            del players[pname]
+
+    # Build state
+    state = {
+        "players": [],
+        "bullets": [],
+        "explosions": explosions,
+        "sparks": sparks,
+        "dead_players": dead_players
+    }
+
+    for pdata in players.values():
+        p = pdata["obj"]
         state["players"].append({
             "name": p.name,
             "x": p.x,
             "y": p.y,
             "hp": p.hp,
             "color": p.color,
-            "alive": p.alive
+            "dir_x": p.dir_x,
+            "dir_y": p.dir_y
         })
+
     for b in bullets:
-        state["bullets"].append({
-            "x": b.x,
-            "y": b.y
-        })
+        state["bullets"].append({"x": b.x, "y": b.y})
+
+    # Clear one-frame events
+    explosions = []
+    sparks = []
+    dead_players = []
 
     socket.send_pyobj(state)
