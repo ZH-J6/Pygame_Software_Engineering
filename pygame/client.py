@@ -15,7 +15,7 @@ name = sys.argv[1] if len(sys.argv) > 1 else "Player"
 # ZMQ setup
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
-socket.connect("tcp://localhost:2345")  # change to server IP if needed
+socket.connect("tcp://localhost:2345")
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
