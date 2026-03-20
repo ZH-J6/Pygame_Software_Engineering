@@ -8,7 +8,7 @@ from effects import MuzzleFlash
 # 自动找到当前文件路径
 BASE_DIR = os.path.dirname(__file__)
 
-tank_img = pygame.image.load(os.path.join(BASE_DIR,"tank.png"))
+tank_img = pygame.image.load(os.path.join(BASE_DIR,"assets","tank.png"))
 tank_img = pygame.transform.scale(tank_img,(40,40))
 
 
