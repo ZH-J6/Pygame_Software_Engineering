@@ -12,7 +12,7 @@ Supports both local multiplayer and online multiplayer (client-server).
 Clone the repository and set up a virtual environment.
 
 ```bash
-git clone https://github.com/yourname/tank-battle.git
+git clone https://github.com/ZH-J6/Pygame_Software_Engineering.git
 cd Pygame_Software_Engineering
 
 # Create virtual environment
