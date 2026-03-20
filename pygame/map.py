@@ -1,12 +1,20 @@
+"""
+Map generation for Tank Battle.
+
+Handles:
+- Defining the map layout using a simple ASCII-style array.
+- Mapping characters to elements:
+    - X: map boundary
+    - B: brick wall
+    - S: steel wall
+    - .: empty space
+- Generating a list of pygame.Rect objects representing walls.
+"""
+
 import pygame
 from setting import WIDTH, HEIGHT
 
 TILE = 40
-
-# B = 砖墙
-# S = 钢墙
-# . = 空地
-# X = 边界
 
 MAP = [
 

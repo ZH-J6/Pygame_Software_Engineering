@@ -1,3 +1,13 @@
+"""
+Player module for Tank Battle.
+
+Defines the Player class which handles:
+- Position, movement, and direction.
+- Health and alive status.
+- Weapon usage (shooting bullets).
+- Rendering the tank, name, and health bar on screen.
+"""
+
 import pygame
 import math
 import os
@@ -5,7 +15,7 @@ from bullet import Bullet
 from effects import MuzzleFlash
 
 
-# 自动找到当前文件路径
+# Automatically get the current file path
 BASE_DIR = os.path.dirname(__file__)
 
 tank_img = pygame.image.load(os.path.join(BASE_DIR,"assets","tank.png"))
@@ -13,6 +23,20 @@ tank_img = pygame.transform.scale(tank_img,(40,40))
 
 
 class Player:
+    """
+    Player class for Tank Battle.
+
+    Attributes:
+        x, y: Position of the player.
+        color: RGB color of the player (used for future extensions).
+        weapon: Weapon object assigned to the player.
+        hp: Health points of the player.
+        speed: Movement speed of the player.
+        last_shot: Timestamp of the last shot fired.
+        dir_x, dir_y: Current movement direction.
+        name: Player's name.
+        alive: Player's alive status.
+    """
 
     def __init__(self,x,y,color,weapon,name):
 
@@ -32,7 +56,13 @@ class Player:
 
 
     def move(self,dx,dy,width,height):
+        """
+        Move the player and update direction.
 
+        Args:
+            dx, dy: Directional input (-1, 0, 1).
+            width, height: Screen boundaries.
+        """
         if dx != 0 or dy != 0:
             self.dir_x = dx
             self.dir_y = dy
@@ -45,7 +75,14 @@ class Player:
 
 
     def shoot(self, bullets, flashes, x, y):
+        """
+        Shoot a bullet if cooldown allows.
 
+        Args:
+            bullets: List to append new Bullet objects.
+            flashes: List to append new MuzzleFlash objects.
+            x, y: Spawn coordinates for the bullet.
+        """
         now = pygame.time.get_ticks()
 
         if now - self.last_shot > self.weapon.cooldown:
@@ -62,14 +99,20 @@ class Player:
 
 
     def draw(self,screen,font):
+        """
+        Draw the player tank, name, and HP bar on the screen.
 
+        Args:
+            screen: Pygame display surface.
+            font: Pygame font for rendering text.
+        """
         if not self.alive:
             return
 
         x = int(self.x)
         y = int(self.y)
 
-        # 计算坦克方向
+        # Calculate tank rotation angle
         if self.dir_x != 0 or self.dir_y != 0:
             angle = math.degrees(math.atan2(self.dir_y,self.dir_x)) + 180
         else:
@@ -82,12 +125,12 @@ class Player:
 
         screen.blit(rotated,rect)
 
-        # 玩家名字
+        # Draw player name
         name_text = font.render(self.name,True,(255,255,255))
         name_rect = name_text.get_rect(center=(x,y-35))
         screen.blit(name_text,name_rect)
 
-        # 血条
+        # Draw hp bar
         hp = max(0,self.hp)
 
         bar_width = 40

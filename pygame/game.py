@@ -1,3 +1,16 @@
+"""
+Local game loop for Tank Battle.
+
+Handles:
+- Initializing Pygame and setting up the screen.
+- Loading assets (background music, fonts, images).
+- Player movement, shooting, and collision handling.
+- Bullet updates, collisions with walls and players.
+- Visual effects (explosions, muzzle flashes, hit sparks).
+- Rendering players, bullets, walls, and effects.
+- Detecting game over conditions and displaying winner.
+"""
+
 import pygame
 import math
 
@@ -7,7 +20,6 @@ from weapon import Weapon
 from bullet import Bullet
 from effects import Explosion, MuzzleFlash, HitSpark
 from map import generate_walls
-
 
 pygame.init()
 pygame.mixer.music.load("assets/bgm2.mp3")
@@ -23,7 +35,6 @@ pygame.display.set_caption("Tank Battle")
 clock = pygame.time.Clock()
 
 weapon = Weapon("Missile",12,400)
-
 
 spawn_points = [
 (80,80),
@@ -52,7 +63,13 @@ death_timer = 0
 
 
 def move_with_collision(player,dx,dy):
+    """
+    Move the player and handle collision with walls.
 
+    Args:
+        player: Player object to move.
+        dx, dy: Movement direction.
+    """
     old_x = player.x
     old_y = player.y
 

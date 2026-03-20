@@ -1,3 +1,11 @@
+"""
+UI for Tank Battle.
+
+Contains functions to draw user interface elements:
+- draw_hp: displays a player's health as a text label and HP bar.
+- Can be used by local game and multiplayer client to show HUD.
+"""
+
 import pygame
 
 def draw_hp(player,x,y,screen,font):
