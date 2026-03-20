@@ -70,10 +70,22 @@ Shoot: ```Space```
 ---
 
 ## Play Instructions
-Instructions how to play your game. Include instructions so that the grader can experience your full game (doesn't overlook any hidden features).
+- Each player controls a tank and tries to destroy the opponent.
+- Shoot bullets to reduce the enemy's HP.
+- Each hit deals damage based on the weapon.
+- When a player's HP reaches 0, they are destroyed.
+- The last surviving player wins.
 
-## Design
-Optional: Add some description of the design choices, and maybe a UML class diagram or other material if that helped you during development.
+### Tips
+
+- Use walls as cover to avoid bullets.
+- Move constantly to dodge enemy shots.
+- Aim in the direction you are moving.
+
+### Online Mode Notes
+
+- Each client controls one tank.
+- If you are destroyed, the game will close.
 
 ## Authors
 John Lin / Zhong Ying He
