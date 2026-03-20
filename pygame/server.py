@@ -1,3 +1,27 @@
+"""
+Multiplayer server module for Tank Battle.
+
+Handles:
+- Player connections and disconnections via ZMQ.
+- Player movement, shooting, and collisions with walls.
+- Bullet updates and player damage/death.
+- One-frame events like explosions and sparks.
+- Sending the current game state to all connected clients.
+
+Protocol:
+- Uses ZMQ REP socket on tcp://*:2345.
+- Receives player actions as Python objects:
+    {"name": str, "dx": int, "dy": int, "shoot": bool}
+- Sends back game state including:
+    {
+        "players": [...],
+        "bullets": [...],
+        "explosions": [...],
+        "sparks": [...],
+        "dead_players": [...]
+    }
+"""
+
 import zmq
 import random
 import pygame
@@ -86,6 +110,7 @@ while True:
             "obj": Player(spawn[0], spawn[1], color, weapon, name),
             "last_seen": now
         }
+        print(f"{name} joined the game")
 
     player_data = players[name]
     player = player_data["obj"]
@@ -140,6 +165,7 @@ while True:
                     dead_players.append(pname)
                     dead_cooldown[pname] = time.time()
                     del players[pname]
+                    print(f"{pname} was destroyed by {bullet.owner.name}")
 
                 bullets.remove(bullet)
                 break

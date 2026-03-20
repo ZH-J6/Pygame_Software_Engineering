@@ -1,3 +1,24 @@
+"""
+Multiplayer client module for Tank Battle.
+
+Handles:
+- Connecting to the server via ZMQ REQ socket.
+- Sending local player actions (movement, shooting).
+- Receiving updated game state from the server.
+- Rendering:
+    - Players and their HP bars
+    - Bullets
+    - Walls
+    - Visual effects (explosions, hit sparks)
+- Background music playback
+- Quitting when the player dies or closes the window.
+
+Usage:
+    python client.py [player_name]
+
+If no name is provided, defaults to "Player".
+"""
+
 import sys
 import zmq
 import pygame
@@ -23,7 +44,7 @@ pygame.mixer.music.play(-1)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
-font = pygame.font.SysFont(None, 36)
+font = pygame.font.SysFont(None, 22)
 
 players = {}
 weapon = Weapon("Missile", 12, 400)
@@ -54,8 +75,7 @@ while running:
     if keys[pygame.K_LEFT]: dx = -1
     if keys[pygame.K_RIGHT]: dx = 1
 
-    if keys[pygame.K_SPACE] or keys[pygame.K_f]:
-        shoot = True
+    if keys[pygame.K_SPACE]: shoot = True
 
     # Send action
     action = {"name": name, "dx": dx, "dy": dy, "shoot": shoot}
