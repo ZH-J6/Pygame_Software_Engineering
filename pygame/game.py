@@ -10,7 +10,7 @@ from map import generate_walls
 
 
 pygame.init()
-pygame.mixer.music.load("bgm.mp3")
+pygame.mixer.music.load("assets/bgm.mp3")
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(-1)
 
