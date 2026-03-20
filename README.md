@@ -111,7 +111,6 @@ John Lin / Zhong Ying He
 │   ├── setting.py   # Game settings 
 │   ├── ui.py
 │   │
-│   ├── tank.png
-│   └── bgm.mp3
+│   └── assets/
 ├── requirements.txt
 └── README.md
