@@ -4,8 +4,10 @@
 A simple 2D tank battle game built with Python using Pygame.
 Supports both local multiplayer and online multiplayer (client-server).
 
-## Install/Run Instructions
-### 1. ⚙️ Installation
+---
+
+## ⚙️ Install/Run Instructions
+### 1. Installation
 
 Clone the repository and set up a virtual environment.
 
@@ -25,26 +27,14 @@ venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 ```
-### 2. 🕹️ Run the game
+### 2. Run the game
 
 ### Local mode
 
 ```bash
 python pygame/game.py
 ```
-- Controls:
 
-Player 1:
-```
-W A S D = Move
-F = Shoot
-```
-Player 2:
-```
-Arrow Keys = Move
-L = Shoot
-```
----
 
 ### Online mode
 
@@ -61,12 +51,6 @@ python pygame/client.py Player2
 
 You can replace ```Player1```, ```Player2``` with any player name.
 
-- Controls:
-
-Move: ```W A S D```  or  ```Arrow Keys```
-
-Shoot: ```Space```
-
 ---
 
 ## 🎮 Play Instructions
@@ -76,16 +60,35 @@ Shoot: ```Space```
 - When a player's HP reaches 0, they are destroyed.
 - The last surviving player wins.
 
-### Tips
+### 1. Controls
+
+#### 🖥️ Local Mode
+
+Player 1:
+- Move: ```W A S D``` 
+- Shoot: ```F```
+
+Player 2:
+- Move: ```Arrow Keys```  
+- Shoot: ```L```
+
+#### 🌐 Online Mode
+
+- Move: ```W A S D``` or ```Arrow Keys```  
+- Shoot: ```Space```  
+
+
+### 2. Tips
 
 - Use walls as cover to avoid bullets.
 - Move constantly to dodge enemy shots.
 - Aim in the direction you are moving.
 
-### Online Mode Notes
+### 3. Online Mode Notes
 
 - Each client controls one tank.
 - If you are destroyed, the game will close.
+- You can reconnect to the server and join again as a new player.
 
 ---
 
