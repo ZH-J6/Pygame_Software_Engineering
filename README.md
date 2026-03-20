@@ -69,7 +69,7 @@ Shoot: ```Space```
 
 ---
 
-## Play Instructions
+## 🎮 Play Instructions
 - Each player controls a tank and tries to destroy the opponent.
 - Shoot bullets to reduce the enemy's HP.
 - Each hit deals damage based on the weapon.
@@ -87,8 +87,12 @@ Shoot: ```Space```
 - Each client controls one tank.
 - If you are destroyed, the game will close.
 
+---
+
 ## Authors
 John Lin / Zhong Ying He
+
+---
 
 ## 📂 Project Structure
 
