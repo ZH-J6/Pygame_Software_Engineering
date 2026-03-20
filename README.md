@@ -95,7 +95,7 @@ Player 2:
 ---
 
 ## Authors
-John Lin / Zhong Ying He
+John Lin / Zhong Ying He / Railan Berbach 
 
 ---
 
