@@ -4,6 +4,8 @@
 A simple 2D tank battle game built with Python using Pygame.
 Supports both local multiplayer and online multiplayer (client-server).
 
+![game-image](pygame/assets/game.png) 
+
 ---
 
 ## ⚙️ Install/Run Instructions
