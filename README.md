@@ -1,4 +1,4 @@
-# Tank Battle Game
+# Tank Battle Game ![tank-image](pygame/assets/tank_readme.png) 
 
 ## Introduction
 A simple 2D tank battle game built with Python using Pygame.
