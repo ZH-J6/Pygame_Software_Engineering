@@ -27,7 +27,7 @@ pygame.mixer.music.load("assets/bgm2.mp3")
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(-1)
 shoot_sound = pygame.mixer.Sound("assets/shoot.wav")
-shoot_sound.set_volume(0.01)
+shoot_sound.set_volume(0.2)
 explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
 explosion_sound.set_volume(0.04)
 
