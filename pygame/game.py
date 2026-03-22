@@ -34,6 +34,18 @@ pygame.display.set_caption("Tank Battle")
 
 clock = pygame.time.Clock()
 
+def draw_start_menu():
+    screen.fill((10, 10, 20))
+    title = big_font.render("TANK BATTLE", True, (255, 200, 0))
+    screen.blit(title, title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 100)))
+    sub = font.render("Press ENTER to start", True, (255, 255, 255))
+    screen.blit(sub, sub.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+    p1 = font.render("P1: WASD + F to shoot", True, (100, 255, 100))
+    p2 = font.render("P2: Arrow Keys + L to shoot", True, (255, 100, 100))
+    screen.blit(p1, p1.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 60)))
+    screen.blit(p2, p2.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 90)))
+    pygame.display.flip()
+
 weapon = Weapon("Missile",12,400)
 
 spawn_points = [
@@ -55,6 +67,19 @@ flashes = []
 sparks = []
 
 walls = generate_walls()
+
+# Start menu
+in_menu = True
+while in_menu:
+    clock.tick(FPS)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                in_menu = False
+    draw_start_menu()
 
 running = True
 winner = None
