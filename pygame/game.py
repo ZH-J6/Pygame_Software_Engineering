@@ -160,8 +160,7 @@ while running:
         if len(bullets) > bullets_before:
             shoot_sound.play()
 
-        players[0].shoot(bullets,flashes,spawn_x,spawn_y)
-        shoot_sound.play()
+
 
 
     if not game_over and keys[pygame.K_l]:
