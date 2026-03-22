@@ -56,6 +56,7 @@ You can replace ```Player1```, ```Player2``` with any player name.
 ---
 
 ## 🎮 Play Instructions
+- A start menu is shown before the game begins. Press ENTER to start.
 - Each player controls a tank and tries to destroy the opponent.
 - Shoot bullets to reduce the enemy's HP.
 - Each hit deals damage based on the weapon.
