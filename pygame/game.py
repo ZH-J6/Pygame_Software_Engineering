@@ -155,6 +155,11 @@ while running:
         spawn_x = players[0].x + players[0].dir_x * 25
         spawn_y = players[0].y + players[0].dir_y * 25
 
+        bullets_before = len(bullets)
+        players[0].shoot(bullets,flashes,spawn_x,spawn_y)
+        if len(bullets) > bullets_before:
+            shoot_sound.play()
+
         players[0].shoot(bullets,flashes,spawn_x,spawn_y)
         shoot_sound.play()
 
@@ -164,8 +169,10 @@ while running:
         spawn_x = players[1].x + players[1].dir_x * 25
         spawn_y = players[1].y + players[1].dir_y * 25
 
+        bullets_before = len(bullets)
         players[1].shoot(bullets,flashes,spawn_x,spawn_y)
-        shoot_sound.play()
+        if len(bullets) > bullets_before:
+            shoot_sound.play()
 
 
 
