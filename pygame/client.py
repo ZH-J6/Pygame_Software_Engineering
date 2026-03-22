@@ -41,6 +41,10 @@ socket.connect("tcp://localhost:2345")
 pygame.mixer.music.load("assets/bgm2.mp3")
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(-1)
+shoot_sound = pygame.mixer.Sound("assets/explosion.wav")
+shoot_sound.set_volume(0.2)
+explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
+explosion_sound.set_volume(0.4)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
@@ -76,6 +80,9 @@ while running:
     if keys[pygame.K_RIGHT]: dx = 1
 
     if keys[pygame.K_SPACE]: shoot = True
+    if keys[pygame.K_SPACE]:
+        shoot_sound.play()
+        
 
     # Send action
     action = {"name": name, "dx": dx, "dy": dy, "shoot": shoot}
@@ -91,6 +98,7 @@ while running:
     # Effects
     for ex in state["explosions"]:
         explosions.append(Explosion(int(ex[0]), int(ex[1])))
+        explosion_sound.play()
     for sp in state["sparks"]:
         sparks.append(HitSpark(int(sp[0]), int(sp[1])))
 
