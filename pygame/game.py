@@ -3,6 +3,7 @@ Local game loop for Tank Battle.
 
 Handles:
 - Initializing Pygame and setting up the screen.
+- Start menu screen with controls overview.
 - Loading assets (background music, fonts, images).
 - Player movement, shooting, and collision handling.
 - Bullet updates, collisions with walls and players.
