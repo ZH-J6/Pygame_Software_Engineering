@@ -26,6 +26,10 @@ pygame.init()
 pygame.mixer.music.load("assets/bgm2.mp3")
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(-1)
+shoot_sound = pygame.mixer.Sound("assets/shoot.wav")
+shoot_sound.set_volume(0.1)
+explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
+explosion_sound.set_volume(0.4)
 
 font = pygame.font.SysFont(None,20)
 big_font = pygame.font.SysFont(None,80)
@@ -152,6 +156,7 @@ while running:
         spawn_y = players[0].y + players[0].dir_y * 25
 
         players[0].shoot(bullets,flashes,spawn_x,spawn_y)
+        shoot_sound.play()
 
 
     if not game_over and keys[pygame.K_l]:
@@ -160,6 +165,7 @@ while running:
         spawn_y = players[1].y + players[1].dir_y * 25
 
         players[1].shoot(bullets,flashes,spawn_x,spawn_y)
+        shoot_sound.play()
 
 
 
@@ -207,6 +213,7 @@ while running:
                     explosions.append(
                         Explosion(int(player.x),int(player.y))
                     )
+                    explosion_sound.play()
 
                 bullets.remove(bullet)
                 break
